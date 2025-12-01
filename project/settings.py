@@ -31,6 +31,10 @@ CSRF_TRUSTED_ORIGINS = [
     "https://aplicacionweb-edgkd0hkh3cwawdb.francecentral-01.azurewebsites.net",
 ]
 
+# Donde guardaremos las imágenes
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -41,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "crispy_forms",
-    "crispy_bootstrap4",
+    "crispy_bootstrap5",
     'relecloud.apps.RelecloudConfig',
 ]
 

@@ -13,7 +13,13 @@ class Destination(models.Model):
         null=False,
         blank=False
     )
-
+    # Añadimos un campo para la imagen 
+    image= models.ImageField(
+        upload_to='destinations/',
+        null=True,
+        blank=True
+    )
+    
     def __str__(self):
         return self.name
     
