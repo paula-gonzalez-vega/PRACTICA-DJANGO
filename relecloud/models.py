@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 
 # Modelo de destino
 class Destination(models.Model):
