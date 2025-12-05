@@ -3,6 +3,7 @@ from django.urls import reverse_lazy
 from . import models
 from django.views import generic
 from django.contrib.messages.views import SuccessMessageMixin
+from .models import Destination
 
 # Create your views here.
 

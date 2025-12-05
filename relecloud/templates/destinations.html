@@ -12,11 +12,24 @@ ReleCloud - Destinations
 <p>
     <a class="btn btn-primary" href="{% url 'destination_form' %}">Add destination</a>
 </p>
+
+<!-- Recorremos los destinos -->
 <ul class="list-group">
     {% for destination in destinations %}
-    <a class="list-group-item list-group-item-action" href="{% url 'destination_detail' destination.id %}">
-        {{ destination }}
+    <a class="list-group-item list-group-item-action d-flex align-items-center"
+       href="{% url 'destination_detail' destination.id %}">
+       
+       <!-- Si el destino tiene una foto la enseñamos -->
+        {% if destination.image %}
+            <img src="{{ destination.image.url }}"
+                 alt="{{ destination.name }}"
+                 style="width: 60px; height: 60px; object-fit: cover; margin-right: 15px; border-radius: 4px;">
+        {% endif %}
+        
+        <!-- Mostramos elnombre del destino-->
+        <span>{{ destination.name }}</span>
     </a>
     {% endfor %}
 </ul>
+
 {% endblock content %}
