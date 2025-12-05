@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
-from .models import Destination
+from .models import Cruise, Destination
 from django.urls import reverse
 from django.core import mail
 from django.conf import settings
@@ -102,13 +102,20 @@ class DestinationDetailViewTests(TestCase):
 
 # Tests para envío de solicitudes de información (InfoRequest)
 class InfoRequestEmailTests(TestCase):
+    def setUp(self):
+        self.cruise = Cruise.objects.create(
+            name='Caribbean Cruise',
+            description='Un encantador crucero por el Caribe.'
+        )
+
     def test_info_request_email_sent(self):
         # Crear una solicitud de información
         response = self.client.post(reverse('info_request'), {
             'name': 'Test User',
             'email': 'testuser@example.com',
-            'notes': 'I would like more information about the cruise.',
-            'cruise': 'Caribbean Cruise'
+            'notes': 'Quería más información del crucero.',
+            # Usamsos el ID del crucero creado en setUp
+            'cruise': self.cruise.pk
         })
 
         # Comprobar que se ha enviado un email (debe existir un email en la bandeja de salida)
@@ -116,8 +123,9 @@ class InfoRequestEmailTests(TestCase):
         email = mail.outbox[0]
         self.assertIn('Información sobre Caribbean Cruise', email.subject)
         self.assertIn('Hola Test User', email.body)
-        self.assertIn('Hemos recibido tu solicitud de: Caribbean Cruise', email.body)
-        self.assertIn('Notas:' , email.body)
+        self.assertIn('Gracias por tu interés en Caribbean Cruise', email.body)
+        self.assertIn('Tendremos en cuenta tus notas: ', email.body)
+        self.assertIn('Quería más información del crucero.', email.body)
 
         # Comprobar el destinatario del email
         self.assertEqual(email.to, ['testuser@example.com'])
@@ -127,8 +135,8 @@ class InfoRequestEmailTests(TestCase):
         response = self.client.post(reverse('info_request'), {
             'name': 'Test User',
             'email': 'testuser@example.com',
-            'notes': 'I would like more information about the cruise.',
-            'cruise': 'Caribbean Cruise'
+            'notes': 'Quería más información del crucero.',
+            'cruise': self.cruise.pk
         })
 
         # Comprobar que la respuesta es una redirección
