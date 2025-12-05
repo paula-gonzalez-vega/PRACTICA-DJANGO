@@ -1,7 +1,9 @@
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
-from .models import Destination
+from .models import Cruise, Destination
 from django.urls import reverse
+from django.core import mail
+from django.conf import settings
 
 # Create your tests here.
 class DestinationModelTest(TestCase):
@@ -97,3 +99,48 @@ class DestinationDetailViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Detalle sin imagen")
+
+# Tests para envío de solicitudes de información (InfoRequest)
+class InfoRequestEmailTests(TestCase):
+    def setUp(self):
+        self.cruise = Cruise.objects.create(
+            name='Caribbean Cruise',
+            description='Un encantador crucero por el Caribe.'
+        )
+
+    def test_info_request_email_sent(self):
+        # Crear una solicitud de información
+        response = self.client.post(reverse('info_request'), {
+            'name': 'Test User',
+            'email': 'testuser@example.com',
+            'notes': 'Quería más información del crucero.',
+            # Usamsos el ID del crucero creado en setUp
+            'cruise': self.cruise.pk
+        })
+
+        # Comprobar que se ha enviado un email (debe existir un email en la bandeja de salida)
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertIn('Información sobre Caribbean Cruise', email.subject)
+        self.assertIn('Hola Test User', email.body)
+        self.assertIn('Gracias por tu interés en Caribbean Cruise', email.body)
+        self.assertIn('Tendremos en cuenta tus notas: ', email.body)
+        self.assertIn('Quería más información del crucero.', email.body)
+
+        # Comprobar el destinatario del email
+        self.assertEqual(email.to, ['testuser@example.com'])
+
+    def test_info_request_email_redirection(self):
+        # Crear una solicitud de información
+        response = self.client.post(reverse('info_request'), {
+            'name': 'Test User',
+            'email': 'testuser@example.com',
+            'notes': 'Quería más información del crucero.',
+            'cruise': self.cruise.pk
+        })
+
+        # Comprobar que la respuesta es una redirección
+        self.assertEqual(response.status_code, 302)
+        email_from = settings.EMAIL_HOST_USER
+        self.assertEqual(mail.outbox[0].from_email, email_from)
+        self.assertEqual(response.url, reverse('index'))
