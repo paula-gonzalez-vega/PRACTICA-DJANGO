@@ -5,20 +5,34 @@ ReleCloud - {{ destination }}
 {% endblock %}
 
 {% block content %}
-<h1>{{ destination }}</h1>
-<p>
-    {{ destination.description }}
-</p>
+<div class="row">
+    <div class="col-md-4">
+        {% if destination.image and destination.image.url %}
+            <img src="{{ destination.image.url }}"
+                 alt="{{ destination }}"
+                 class="img img-fluid"
+                 style="margin-bottom: 20px; border-radius: 4px;">
+        {% endif %}
+    </div>
 
-<p>
-    <a class="btn btn-primary" href="{% url 'destination_form' destination.pk %}">Edit</a>
-    <a class="btn btn-danger" href="{% url 'destination_confirm_delete' destination.pk %}">Delete</a>
-</p>
+    <div class="col-md-8">
+        <h1>{{ destination }}</h1>
 
-<p>You can explore {{ destination }} on the following cruises:</p>
-<ul class="list-group">
-    {% for cruise in destination.cruises.all %}
-    <a class="list-group-item list-group-item-action" href="{% url 'cruise_detail' cruise.id %}">{{ cruise }}</a>
-    {% endfor %}
-</ul>
+        <p>{{ destination.description }}</p>
+
+        <p>
+            <a class="btn btn-primary" href="{% url 'destination_form' destination.pk %}">Edit</a>
+            <a class="btn btn-danger" href="{% url 'destination_confirm_delete' destination.pk %}">Delete</a>
+        </p>
+
+        <p>You can explore {{ destination }} on the following cruises:</p>
+        <ul class="list-group">
+            {% for cruise in destination.cruises.all %}
+            <a class="list-group-item list-group-item-action" href="{% url 'cruise_detail' cruise.id %}">
+                {{ cruise }}
+            </a>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
 {% endblock content %}

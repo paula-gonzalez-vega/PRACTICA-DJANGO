@@ -50,7 +50,7 @@ class DestinationListViewTest(TestCase):
         self.assertContains(response, destination_with_image.image.url)
 
 
-def test_destination_list_renders_without_image(self):
+    def test_destination_list_renders_without_image(self):
         # Crear una instancia de Destination sin imagen
         destination_without_image = Destination.objects.create(
             name='Destination Without Image',
@@ -60,6 +60,40 @@ def test_destination_list_renders_without_image(self):
         url = reverse('destinations')
         response = self.client.get(url)
 
-        # Comprobar que la respuesta es correcta y no contiene una URL de imagen
+        # Comprobar que la respuesta es correcta
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, 'img src=')
+        # Comprobar que aparece el destino en la lista
+        self.assertContains(response, destination_without_image.name)
+
+# Tests para el detalle de destino 
+class DestinationDetailViewTests(TestCase):
+    def test_destination_detail_shows_image_if_present(self):
+        image = SimpleUploadedFile(
+            "detail_test_image.jpg",
+            b"filecontent",
+            content_type="image/jpeg"
+        )
+
+        destination = Destination.objects.create(
+            name="Detalle con imagen",
+            description="Descripción del destino con imagen",
+            image=image
+        )
+
+        url = reverse('destination_detail', kwargs={'pk': destination.pk})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, destination.image.url)
+
+    def test_destination_detail_renders_without_image(self):
+        destination = Destination.objects.create(
+            name="Detalle sin imagen",
+            description="Descripción sin imagen"
+        )
+
+        url = reverse('destination_detail', kwargs={'pk': destination.pk})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Detalle sin imagen")
