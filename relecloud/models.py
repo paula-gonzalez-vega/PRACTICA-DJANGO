@@ -1,4 +1,6 @@
 from django.db import models
+# Añadimos para poder usar reverse en get_absolute_url
+from django.urls import reverse
 
 # Modelo de destino
 class Destination(models.Model):
@@ -24,6 +26,7 @@ class Destination(models.Model):
         return self.name
     
     def get_absolute_url(self):
+        # Traducimos un nombre de ruta a su URL correspondiente
         return reverse('destination_detail', kwargs={'pk': self.pk})
 
 

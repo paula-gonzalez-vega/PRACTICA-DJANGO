@@ -23,7 +23,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-o$ne)fk#ml2)daq)swnz4^4#g^ezz_!ou(!c8m-z9tyt93k0nr'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Ponemos debug a true para que se muestren las imágenes, si no aparece un icono
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 

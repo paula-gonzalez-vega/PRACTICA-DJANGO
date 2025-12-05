@@ -3,6 +3,7 @@ from django.urls import reverse_lazy
 from . import models
 from django.views import generic
 from django.contrib.messages.views import SuccessMessageMixin
+from .models import Destination
 
 # Create your views here.
 
@@ -24,12 +25,13 @@ class DestinationDetailView(generic.DetailView):
 class DestinationCreateView(generic.CreateView):
     template_name = 'destination_form.html'
     model = models.Destination
-    fields = ['name', 'description']
+    # Añadimos el campo de la imagen
+    fields = ['name', 'description', 'image']
     
 class DestinationUpdateView(generic.UpdateView):
     template_name = 'destination_form.html'
     model = models.Destination
-    fields = ['name', 'description']
+    fields = ['name', 'description', 'image']
 
 class DestinationDeleteView(generic.DeleteView):
     template_name = 'destination_confirm_delete.html'
