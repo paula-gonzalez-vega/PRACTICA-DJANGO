@@ -148,7 +148,6 @@ class InfoRequestEmailTests(TestCase):
         self.assertEqual(response.url, reverse('index'))
 
 
-
 # P13 - Test para destinos reviews
 class DestinationReviewsTests(TestCase):
     def setUp(self):

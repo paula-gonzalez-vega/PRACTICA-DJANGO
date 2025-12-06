@@ -178,3 +178,48 @@ def login_view(request):
 def logout_view(request):
     logout(request)              # Cierra la sesión
     return render(request, 'logout.html')
+
+@login_required
+def add_destination_review(request, pk):
+    destination = get_object_or_404(Destination, pk=pk)
+    if not Purchase.objects.filter(user=request.user, destination=destination).exists():
+        return redirect('destination_detail', pk=pk)
+
+    if request.method == 'POST':
+        form = DestinationReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.user = request.user
+            review.destination = destination
+            review.save()
+            return redirect('destination_detail', pk=pk)
+    return redirect('destination_detail', pk=pk)
+
+
+@login_required
+def add_cruise_review(request, pk):
+    cruise = get_object_or_404(Cruise, pk=pk)
+    if not Purchase.objects.filter(user=request.user, cruise=cruise).exists():
+        return redirect('cruise_detail', pk=pk)
+
+    if request.method == 'POST':
+        form = CruiseReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.user = request.user
+            review.cruise = cruise
+            review.save()
+            return redirect('cruise_detail', pk=pk)
+    return redirect('cruise_detail', pk=pk)
+
+@login_required
+def buy_destination(request, pk):
+    destination = get_object_or_404(Destination, pk=pk)
+    Purchase.objects.get_or_create(user=request.user, destination=destination)
+    return redirect('destination_detail', pk=pk)
+
+@login_required
+def buy_cruise(request, pk):
+    cruise = get_object_or_404(Cruise, pk=pk)
+    Purchase.objects.get_or_create(user=request.user, cruise=cruise)
+    return redirect('cruise_detail', pk=pk)
