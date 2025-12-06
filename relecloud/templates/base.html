@@ -31,17 +31,26 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'about' %}">About</a>
                 </li>
-                {% comment %} <li class="nav-item">
-                    <a class="nav-link" href="#">Login</a>
-                </li> {% endcomment %}
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                            {% csrf_token %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                            </li>
+                        </form>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Login</a>
+                    </li>
+                {% endif %}
             </ul>
         </div>
     </nav>
 
     <main role="main">
-        <div class="jumbotron main-header"
-            style="background-image: url('{% static 'res/img/cosmos-db.jpeg' %}'); background-size: cover;">
-
+        <div class="jumbotron main-header">
             <div class="container">
                 <div class="row">
                     <div class="col-md-4">
