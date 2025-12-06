@@ -254,4 +254,42 @@ class AverageRatingTests(TestCase):
         avg_rating = CruiseReview.objects.filter(cruise=self.cruise).aggregate(models.Avg('rating'))['rating__avg']
         self.assertEqual(avg_rating, 8.0)
 
+# Test para ordenar destinos por número de reviews
+class DestinationOrderByReviewsTests(TestCase):
+    def setUp(self):
+        # Crear usuarios
+        self.user1 = User.objects.create_user(username='user1', password='12345')
+        self.user2 = User.objects.create_user(username='user2', password='12345')
+        
+        # Crear destinos
+        self.dest_mars = Destination.objects.create(name='Mars', description='Red planet')
+        self.dest_venus = Destination.objects.create(name='Venus', description='Hot planet')
+        self.dest_jupiter = Destination.objects.create(name='Jupiter', description='Giant planet')
+        
+        # Crear compras y reviews
+        # Mars: 2 reviews
+        Purchase.objects.create(user=self.user1, destination=self.dest_mars)
+        Purchase.objects.create(user=self.user2, destination=self.dest_mars)
+        DestinationReview.objects.create(user=self.user1, destination=self.dest_mars, rating=9, comment='Great!')
+        DestinationReview.objects.create(user=self.user2, destination=self.dest_mars, rating=8, comment='Good!')
+        
+        # Venus: 1 review
+        Purchase.objects.create(user=self.user1, destination=self.dest_venus)
+        DestinationReview.objects.create(user=self.user1, destination=self.dest_venus, rating=7, comment='Nice!')
+        
+        # Jupiter: 0 reviews (solo creado, sin compras ni reviews)
+    
+    def test_destinations_ordered_by_review_count(self):
+        """Test que los destinos se ordenan por número de reviews (descendente)"""
+        url = reverse('destinations')
+        response = self.client.get(url)
+        destinations = response.context['destinations']
+        
+        # Verificar orden: Mars (2), Venus (1), Jupiter (0)
+        self.assertEqual(destinations[0].name, 'Mars')
+        self.assertEqual(destinations[0].review_count, 2)
+        self.assertEqual(destinations[1].name, 'Venus')
+        self.assertEqual(destinations[1].review_count, 1)
+        self.assertEqual(destinations[2].name, 'Jupiter')
+        self.assertEqual(destinations[2].review_count, 0)
 

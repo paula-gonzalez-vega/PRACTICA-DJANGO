@@ -1,7 +1,7 @@
 import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
-
+from django.db.models import Count, Avg  # AÑADIR ESTA LÍNEA
 from django.conf import settings
 from django.core.mail import send_mail
 from django.http import BadHeaderError
@@ -26,8 +26,17 @@ def about(request):
         return render(request,'about.html')
 
 def destinations(request):
-      all_destinations = models.Destination.objects.all()
-      return render(request,'destinations.html', {'destinations': all_destinations})
+    
+    all_destinations = models.Destination.objects.annotate(
+        review_count=Count('reviews')
+    )
+    #1: número de reviews
+    all_destinations = all_destinations.order_by('-review_count')
+    
+    #2:  puntuación media 
+    # all_destinations = all_destinations.order_by('-avg_rating')
+
+    return render(request,'destinations.html', {'destinations': all_destinations})
 
 class DestinationDetailView(DetailView):
     model = Destination
