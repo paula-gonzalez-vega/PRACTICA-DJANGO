@@ -1,6 +1,8 @@
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
-from .models import Cruise, Destination
+from .models import Cruise, Destination, InfoRequest, DestinationReview, CruiseReview, Purchase
+from django.contrib.auth.models import User
+from django.db import models
 from django.urls import reverse
 from django.core import mail
 from django.conf import settings
@@ -144,3 +146,150 @@ class InfoRequestEmailTests(TestCase):
         email_from = settings.EMAIL_HOST_USER
         self.assertEqual(mail.outbox[0].from_email, email_from)
         self.assertEqual(response.url, reverse('index'))
+
+
+# P13 - Test para destinos reviews
+class DestinationReviewsTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='12345')
+        self.destination = Destination.objects.create(
+            name='Mars',
+            description='Red planet adventure'
+        )
+        self.cruise = Cruise.objects.create(
+            name='Mars Cruise',
+            description='Travel to Mars!'
+        )
+        
+    def test_add_destination_review_without_purchase(self):
+        self.client.login(username='testuser', password='12345')
+        response = self.client.post(
+            reverse('destination_review', args=[self.destination.pk]),
+            {'rating': 8, 'comment': 'Great!'}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(DestinationReview.objects.filter(user=self.user, destination=self.destination).exists())
+
+    def test_add_destination_review_with_purchase(self):
+        self.client.login(username='testuser', password='12345')
+        Purchase.objects.create(user=self.user, destination=self.destination)
+        response = self.client.post(
+            reverse('destination_review', args=[self.destination.pk]),
+            {'rating': 9, 'comment': 'Amazing experience!'}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(DestinationReview.objects.filter(user=self.user, destination=self.destination).exists())
+
+# P13 - Test para cruceros reviews
+class CruiseReviewsTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='12345')
+        self.destination = Destination.objects.create(
+            name='Venus',
+            description='Hot planet adventure'
+        )
+        self.cruise = Cruise.objects.create(
+            name='Venus Cruise',
+            description='Travel to Venus!'
+        )
+        
+    def test_add_cruise_review_without_purchase(self):
+        self.client.login(username='testuser', password='12345')
+        response = self.client.post(
+            reverse('cruise_review', args=[self.cruise.pk]),
+            {'rating': 7, 'comment': 'Good trip!'}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(CruiseReview.objects.filter(user=self.user, cruise=self.cruise).exists())
+
+    def test_add_cruise_review_with_purchase(self):
+        self.client.login(username='testuser', password='12345')
+        Purchase.objects.create(user=self.user, cruise=self.cruise)
+        response = self.client.post(
+            reverse('cruise_review', args=[self.cruise.pk]),
+            {'rating': 10, 'comment': 'Fantastic voyage!'}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(CruiseReview.objects.filter(user=self.user, cruise=self.cruise).exists())
+
+
+# P13 - Test para compras
+class PurchaseTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='12345')
+        self.destination = Destination.objects.create(
+            name='Jupiter',
+            description='Giant planet adventure'
+        )
+        self.cruise = Cruise.objects.create(
+            name='Jupiter Cruise',
+            description='Travel to Jupiter!'
+        )
+        
+    def test_buy_destination(self):
+        self.client.login(username='testuser', password='12345')
+        response = self.client.get(reverse('buy_destination', args=[self.destination.pk]))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Purchase.objects.filter(user=self.user, destination=self.destination).exists())
+
+    def test_buy_cruise(self):
+        self.client.login(username='testuser', password='12345')
+        response = self.client.get(reverse('buy_cruise', args=[self.cruise.pk]))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Purchase.objects.filter(user=self.user, cruise=self.cruise).exists())
+
+# P13 - Test para cálculo de valoraciones medias
+class AverageRatingTests(TestCase):
+    def setUp(self):
+        self.user1 = User.objects.create_user(username='user1', password='12345')
+        self.user2 = User.objects.create_user(username='user2', password='54321')
+        self.cruise = Cruise.objects.create(
+            name='Saturn Cruise',
+            description='Travel to Saturn!'
+        )   
+    def test_average_rating_calculation(self):
+        CruiseReview.objects.create(user=self.user1, cruise=self.cruise, rating=9, comment='Excellent!')
+        CruiseReview.objects.create(user=self.user2, cruise=self.cruise, rating=7, comment='Very good!')
+
+        avg_rating = CruiseReview.objects.filter(cruise=self.cruise).aggregate(models.Avg('rating'))['rating__avg']
+        self.assertEqual(avg_rating, 8.0)
+
+# Test para ordenar destinos por número de reviews
+class DestinationOrderByReviewsTests(TestCase):
+    def setUp(self):
+        # Crear usuarios
+        self.user1 = User.objects.create_user(username='user1', password='12345')
+        self.user2 = User.objects.create_user(username='user2', password='12345')
+        
+        # Crear destinos
+        self.dest_mars = Destination.objects.create(name='Mars', description='Red planet')
+        self.dest_venus = Destination.objects.create(name='Venus', description='Hot planet')
+        self.dest_jupiter = Destination.objects.create(name='Jupiter', description='Giant planet')
+        
+        # Crear compras y reviews
+        # Mars: 2 reviews
+        Purchase.objects.create(user=self.user1, destination=self.dest_mars)
+        Purchase.objects.create(user=self.user2, destination=self.dest_mars)
+        DestinationReview.objects.create(user=self.user1, destination=self.dest_mars, rating=9, comment='Great!')
+        DestinationReview.objects.create(user=self.user2, destination=self.dest_mars, rating=8, comment='Good!')
+        
+        # Venus: 1 review
+        Purchase.objects.create(user=self.user1, destination=self.dest_venus)
+        DestinationReview.objects.create(user=self.user1, destination=self.dest_venus, rating=7, comment='Nice!')
+        
+        # Jupiter: 0 reviews (solo creado, sin compras ni reviews)
+    
+    def test_destinations_ordered_by_review_count(self):
+        """Test que los destinos se ordenan por número de reviews (descendente)"""
+        url = reverse('destinations')
+        response = self.client.get(url)
+        destinations = response.context['destinations']
+        
+        # Verificar orden: Mars (2), Venus (1), Jupiter (0)
+        self.assertEqual(destinations[0].name, 'Mars')
+        self.assertEqual(destinations[0].review_count, 2)
+        self.assertEqual(destinations[1].name, 'Venus')
+        self.assertEqual(destinations[1].review_count, 1)
+        self.assertEqual(destinations[2].name, 'Jupiter')
+        self.assertEqual(destinations[2].review_count, 0)
+

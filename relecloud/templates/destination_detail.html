@@ -33,6 +33,50 @@ ReleCloud - {{ destination }}
             </a>
             {% endfor %}
         </ul>
+        
+        {% if user.is_authenticated and not has_purchased %}
+        <form action="{% url 'buy_destination' destination.pk %}" method="post" class="mt-4 mb-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">Buy destination</button>
+        </form>
+        {% endif %}
+
+        {% if can_review %}
+        <div class="mt-5">
+            <h3>Reviews</h3>
+            {% if has_purchased %}
+                <h5>Average rating: {{ avg_rating }}/10</h5>
+            {% else %}
+                <p>No reviews yet</p>
+            {% endif %}
+        </div>
+
+        <!-- Formulario de review -->
+        <div class="mt-4 mb-4 p-3 border rounded bg-light">
+            <h4>Leave a review</h4>
+            <form method="post" action="{% url 'destination_review' destination.pk %}">
+                {% csrf_token %}
+                {{ review_form.as_p }}
+                <button class="btn btn-success" type="submit">Submit</button>
+            </form>
+        </div>
+
+        <!-- All reviews -->
+        <div class="mt-4">
+            <h4>All Reviews</h4>
+            <ul class="list-group">
+                {% for review in reviews %}
+                    <li class="list-group-item">
+                        <strong>{{ review.user.username }}</strong> - {{ review.rating }}/10
+                        <p>{{ review.comment }}</p>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item">No reviews yet</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock content %}
+
