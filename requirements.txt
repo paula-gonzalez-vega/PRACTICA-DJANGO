@@ -6,3 +6,4 @@ whitenoise
 gunicorn
 python-dotenv
 crispy-bootstrap5
+Pillow
