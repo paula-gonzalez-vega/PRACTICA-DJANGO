@@ -143,7 +143,7 @@ class InfoRequestEmailTests(TestCase):
 
         # Comprobar que la respuesta es una redirección
         self.assertEqual(response.status_code, 302)
-        email_from = settings.DEFAULT_FROM_EMAIL
+        email_from = settings.EMAIL_HOST_USER
         self.assertEqual(mail.outbox[0].from_email, email_from)
         self.assertEqual(response.url, reverse('index'))
 
